@@ -19,3 +19,28 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Add these styles to override Material-UI defaults */
+.MuiOutlinedInput-root {
+  background-color: #f3f4f6 !important;
+}
+
+.MuiStepLabel-label {
+  color: white !important;
+}
+
+.MuiStepConnector-line {
+  border-color: #4b5563 !important;
+}
+
+.MuiStepIcon-root {
+  color: white !important;
+}
+
+.MuiStepIcon-root.Mui-completed {
+  color: white !important;
+}
+
+.MuiStepIcon-root.Mui-active {
+  color: white !important;
+}

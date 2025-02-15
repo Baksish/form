@@ -1,101 +1,365 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { 
+  TextField, 
+  Button, 
+  Stepper, 
+  Step, 
+  StepLabel, 
+  FormControlLabel, 
+  Checkbox,
+  Box,
+  Typography,
+  Paper,
+  Container
+} from "@mui/material";
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc2626',
+    },
+  },
+});
+
+const steps = ["Basic Information", "Contact Details", "Business Details"];
+
+// Add this new component for custom step icon
+const CustomStepIcon = ({ active, completed, icon }) => {
+  return (
+    <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center
+      ${active ? 'border-white bg-white text-black' : 
+        completed ? 'border-white bg-white text-black' : 
+        'border-gray-500 text-gray-500'}`}>
+      {icon}
+    </div>
+  );
+};
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [activeStep, setActiveStep] = useState(0);
+  const [formData, setFormData] = useState({
+    restaurant_uuid: '',
+    restaurant_name: '',
+    restaurant_email: '',
+    restaurant_password: '',
+    restaurant_address: '',
+    restaurant_phone_number: '',
+    restaurant_type: '',
+    restaurant_description: '',
+    restaurant_image: '',
+    restaurant_cgst: '',
+    restaurant_sgst: '',
+    restaurant_discount: '',
+    restaurant_opening_time: '',
+    restaurant_closing_time: '',
+    food_categories: [],
+    isVegOnly: false,
+    isCashOnly: true
+  });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleNext = () => {
+    setActiveStep((prevStep) => prevStep + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prevStep) => prevStep - 1);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(`${API_URL}/api/restaurant/create-restaurant`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          restaurant_uuid: formData.restaurant_uuid || `REST_${Date.now()}`,
+          food_categories: typeof formData.food_categories === 'string' 
+            ? formData.food_categories.split(',').map(cat => cat.trim())
+            : formData.food_categories
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create restaurant');
+      }
+
+      alert('Restaurant created successfully!');
+      setActiveStep(0);
+      setFormData({
+        restaurant_uuid: '',
+        restaurant_name: '',
+        restaurant_email: '',
+        restaurant_password: '',
+        restaurant_address: '',
+        restaurant_phone_number: '',
+        restaurant_type: '',
+        restaurant_description: '',
+        restaurant_image: '',
+        restaurant_cgst: '',
+        restaurant_sgst: '',
+        restaurant_discount: '',
+        restaurant_opening_time: '',
+        restaurant_closing_time: '',
+        food_categories: [],
+        isVegOnly: false,
+        isCashOnly: true
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      alert(`Error creating restaurant: ${error.message || 'Unknown error occurred'}`);
+    }
+  };
+
+  const renderStepContent = (step) => {
+    switch (step) {
+      case 0:
+        return (
+          <Box className="space-y-4">
+            <TextField
+              fullWidth
+              label="Restaurant Name"
+              name="restaurant_name"
+              value={formData.restaurant_name}
+              onChange={handleChange}
+              required
+              variant="outlined"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            <TextField
+              fullWidth
+              label="Restaurant Type"
+              name="restaurant_type"
+              value={formData.restaurant_type}
+              onChange={handleChange}
+              required
+              variant="outlined"
+            />
+            <TextField
+              fullWidth
+              label="Description"
+              name="restaurant_description"
+              value={formData.restaurant_description}
+              onChange={handleChange}
+              required
+              multiline
+              rows={4}
+              variant="outlined"
+            />
+            <TextField
+              fullWidth
+              label="Image URL"
+              name="restaurant_image"
+              value={formData.restaurant_image}
+              onChange={handleChange}
+              required
+              variant="outlined"
+            />
+          </Box>
+        );
+
+      case 1:
+        return (
+          <Box className="space-y-4">
+            <TextField
+              fullWidth
+              label="Email"
+              name="restaurant_email"
+              type="email"
+              value={formData.restaurant_email}
+              onChange={handleChange}
+              required
+              variant="outlined"
+            />
+            <TextField
+              fullWidth
+              label="Password"
+              name="restaurant_password"
+              type="password"
+              value={formData.restaurant_password}
+              onChange={handleChange}
+              required
+              variant="outlined"
+            />
+            <TextField
+              fullWidth
+              label="Phone Number"
+              name="restaurant_phone_number"
+              value={formData.restaurant_phone_number}
+              onChange={handleChange}
+              required
+              variant="outlined"
+            />
+            <TextField
+              fullWidth
+              label="Address"
+              name="restaurant_address"
+              value={formData.restaurant_address}
+              onChange={handleChange}
+              required
+              multiline
+              rows={3}
+              variant="outlined"
+            />
+          </Box>
+        );
+
+      case 2:
+        return (
+          <Box className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <TextField
+                label="CGST (%)"
+                name="restaurant_cgst"
+                value={formData.restaurant_cgst}
+                onChange={handleChange}
+                required
+                variant="outlined"
+              />
+              <TextField
+                label="SGST (%)"
+                name="restaurant_sgst"
+                value={formData.restaurant_sgst}
+                onChange={handleChange}
+                required
+                variant="outlined"
+              />
+            </div>
+            <TextField
+              fullWidth
+              label="Discount (%)"
+              name="restaurant_discount"
+              value={formData.restaurant_discount}
+              onChange={handleChange}
+              required
+              variant="outlined"
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <TextField
+                label="Opening Time"
+                name="restaurant_opening_time"
+                type="time"
+                value={formData.restaurant_opening_time}
+                onChange={handleChange}
+                required
+                variant="outlined"
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                label="Closing Time"
+                name="restaurant_closing_time"
+                type="time"
+                value={formData.restaurant_closing_time}
+                onChange={handleChange}
+                required
+                variant="outlined"
+                InputLabelProps={{ shrink: true }}
+              />
+            </div>
+            <TextField
+              fullWidth
+              label="Food Categories"
+              name="food_categories"
+              value={formData.food_categories}
+              onChange={handleChange}
+              helperText="Enter categories separated by commas"
+              variant="outlined"
+            />
+            <div className="flex space-x-4">
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.isVegOnly}
+                    onChange={handleChange}
+                    name="isVegOnly"
+                  />
+                }
+                label="Veg Only Restaurant"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={formData.isCashOnly}
+                    onChange={handleChange}
+                    name="isCashOnly"
+                  />
+                }
+                label="Cash Only"
+              />
+            </div>
+          </Box>
+        );
+    }
+  };
+
+  return (
+    <ThemeProvider theme={theme}>
+      <Container maxWidth="md" className="py-10">
+        <Paper elevation={3} className="p-8">
+          <Typography variant="h4" className="text-center mb-8 font-bold">
+            Restaurant Registration
+          </Typography>
+
+          <Stepper activeStep={activeStep} className="mb-8">
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+
+          <form onSubmit={handleSubmit}>
+            {renderStepContent(activeStep)}
+
+            <Box className="mt-8 flex justify-between">
+              <Button
+                disabled={activeStep === 0}
+                onClick={handleBack}
+                variant="outlined"
+              >
+                Back
+              </Button>
+              
+              {activeStep === steps.length - 1 ? (
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                >
+                  Submit
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={handleNext}
+                >
+                  Next
+                </Button>
+              )}
+            </Box>
+          </form>
+        </Paper>
+      </Container>
+    </ThemeProvider>
   );
 }
