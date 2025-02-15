@@ -4,9 +4,6 @@ import { useState } from "react";
 import { 
   TextField, 
   Button, 
-  Stepper, 
-  Step, 
-  StepLabel, 
   FormControlLabel, 
   Checkbox,
   Box,
@@ -15,6 +12,13 @@ import {
   Container
 } from "@mui/material";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { 
+  Description, 
+  ContactMail, 
+  Business,
+  CheckCircle,
+  RadioButtonUnchecked 
+} from '@mui/icons-material';
 
 const theme = createTheme({
   palette: {
@@ -27,19 +31,23 @@ const theme = createTheme({
   },
 });
 
-const steps = ["Basic Information", "Contact Details", "Business Details"];
-
-// Add this new component for custom step icon
-const CustomStepIcon = ({ active, completed, icon }) => {
-  return (
-    <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center
-      ${active ? 'border-white bg-white text-black' : 
-        completed ? 'border-white bg-white text-black' : 
-        'border-gray-500 text-gray-500'}`}>
-      {icon}
-    </div>
-  );
-};
+const steps = [
+  {
+    label: "Basic Information",
+    icon: <Description />,
+    description: "Restaurant name, type, and basic details"
+  },
+  {
+    label: "Contact Details",
+    icon: <ContactMail />,
+    description: "Contact information and address"
+  },
+  {
+    label: "Business Details",
+    icon: <Business />,
+    description: "Tax, timing, and payment information"
+  }
+];
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -182,7 +190,7 @@ export default function Home() {
     switch (step) {
       case 0:
         return (
-          <Box className="space-y-4">
+          <Box className="space-y-6">
             <TextField
               fullWidth
               label="Restaurant Name"
@@ -191,6 +199,11 @@ export default function Home() {
               onChange={handleChange}
               required
               variant="outlined"
+              className="bg-gray-50"
+              InputProps={{
+                className: "rounded-lg"
+              }}
+              helperText="Enter your restaurant's official name"
             />
             <TextField
               fullWidth
@@ -200,6 +213,11 @@ export default function Home() {
               onChange={handleChange}
               required
               variant="outlined"
+              className="bg-gray-50"
+              InputProps={{
+                className: "rounded-lg"
+              }}
+              helperText="e.g., Fine Dining, Casual Dining, Fast Food"
             />
             <TextField
               fullWidth
@@ -211,6 +229,11 @@ export default function Home() {
               multiline
               rows={4}
               variant="outlined"
+              className="bg-gray-50"
+              InputProps={{
+                className: "rounded-lg"
+              }}
+              helperText="Describe your restaurant, cuisine, and specialties"
             />
             <TextField
               fullWidth
@@ -220,6 +243,11 @@ export default function Home() {
               onChange={handleChange}
               required
               variant="outlined"
+              className="bg-gray-50"
+              InputProps={{
+                className: "rounded-lg"
+              }}
+              helperText="URL of your restaurant's main image"
             />
           </Box>
         );
@@ -360,52 +388,84 @@ export default function Home() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="md" className="py-10">
-        <Paper elevation={3} className="p-8">
-          <Typography variant="h4" className="text-center mb-8 font-bold">
-            Restaurant Registration
+      <div className="flex min-h-screen bg-gray-100">
+        {/* Left Sidebar */}
+        <div className="w-80 bg-white shadow-lg p-6 fixed h-full">
+          <Typography variant="h5" className="mb-8 font-bold text-gray-800">
+            Baksish.
           </Typography>
-
-          <Stepper activeStep={activeStep} className="mb-8">
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-
-          <form onSubmit={handleSubmit}>
-            {renderStepContent(activeStep)}
-
-            <Box className="mt-8 flex justify-between">
-              <Button
-                disabled={activeStep === 0}
-                onClick={handleBack}
-                variant="outlined"
+          
+          <div className="space-y-6">
+            {steps.map((step, index) => (
+              <div 
+                key={step.label}
+                className={`flex items-start space-x-4 p-4 rounded-lg transition-all
+                  ${activeStep === index ? 'bg-blue-50 border-l-4 border-blue-500' : ''}
+                  ${activeStep > index ? 'text-green-600' : 'text-gray-600'}`}
               >
-                Back
-              </Button>
-              
-              {activeStep === steps.length - 1 ? (
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                >
-                  Submit
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  onClick={handleNext}
-                >
-                  Next
-                </Button>
-              )}
-            </Box>
-          </form>
-        </Paper>
-      </Container>
+                <div className="mt-1">
+                  {activeStep > index ? <CheckCircle /> : 
+                   activeStep === index ? step.icon : 
+                   <RadioButtonUnchecked />}
+                </div>
+                <div>
+                  <Typography variant="subtitle1" className="font-semibold">
+                    {step.label}
+                  </Typography>
+                  <Typography variant="body2" className="text-gray-500">
+                    {step.description}
+                  </Typography>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 ml-80 p-8">
+          <Container maxWidth="md">
+            <Paper elevation={3} className="p-8 bg-white rounded-xl">
+              <Typography variant="h4" className="mb-8 font-bold text-gray-800 border-b pb-4">
+                {steps[activeStep].label}
+              </Typography>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {renderStepContent(activeStep)}
+
+                <div className="flex justify-between pt-6 border-t mt-8">
+                  <Button
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    variant="outlined"
+                    className="px-6"
+                  >
+                    Back
+                  </Button>
+                  
+                  {activeStep === steps.length - 1 ? (
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                      className="px-8"
+                    >
+                      Submit Registration
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      onClick={handleNext}
+                      className="px-6"
+                    >
+                      Continue
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </Paper>
+          </Container>
+        </div>
+      </div>
     </ThemeProvider>
   );
 }
