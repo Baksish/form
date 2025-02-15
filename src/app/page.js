@@ -83,26 +83,72 @@ export default function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     try {
+      // Validate required fields before submission
+      const requiredFields = [
+        'restaurant_name',
+        'restaurant_email',
+        'restaurant_password',
+        'restaurant_address',
+        'restaurant_phone_number',
+        'restaurant_type',
+        'restaurant_description',
+        'restaurant_image',
+        'restaurant_cgst',
+        'restaurant_sgst',
+        'restaurant_discount',
+        'restaurant_opening_time',
+        'restaurant_closing_time'
+      ];
+
+      const missingFields = requiredFields.filter(field => !formData[field]);
+      if (missingFields.length > 0) {
+        throw new Error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.restaurant_email)) {
+        throw new Error('Please enter a valid email address');
+      }
+
+      // Validate password length
+      if (formData.restaurant_password.length < 8) {
+        throw new Error('Password must be at least 8 characters long');
+      }
+
+      // Validate phone number
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(formData.restaurant_phone_number)) {
+        throw new Error('Please enter a valid 10-digit phone number');
+      }
+
+      // Format the data before sending
+      const formattedData = {
+        ...formData,
+        restaurant_uuid: `REST_${Date.now()}`,
+        food_categories: typeof formData.food_categories === 'string' 
+          ? formData.food_categories.split(',').map(cat => cat.trim()).filter(cat => cat)
+          : formData.food_categories,
+        restaurant_cgst: String(formData.restaurant_cgst),
+        restaurant_sgst: String(formData.restaurant_sgst),
+        restaurant_discount: String(formData.restaurant_discount)
+      };
+
       const response = await fetch(`${API_URL}/api/restaurant/create-restaurant`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          restaurant_uuid: formData.restaurant_uuid || `REST_${Date.now()}`,
-          food_categories: typeof formData.food_categories === 'string' 
-            ? formData.food_categories.split(',').map(cat => cat.trim())
-            : formData.food_categories
-        }),
+        body: JSON.stringify(formattedData),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to create restaurant');
+        throw new Error(data.error || data.message || 'Failed to create restaurant');
       }
 
       alert('Restaurant created successfully!');
@@ -127,8 +173,8 @@ export default function Home() {
         isCashOnly: true
       });
     } catch (error) {
-      console.error('Error:', error);
-      alert(`Error creating restaurant: ${error.message || 'Unknown error occurred'}`);
+      console.error('Error details:', error);
+      alert(`Error: ${error.message || 'An unknown error occurred'}`);
     }
   };
 
