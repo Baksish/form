@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import axios from "axios";
+import toast, { Toaster } from 'react-hot-toast';
 import { 
   TextField, 
   Button, 
@@ -143,23 +145,19 @@ export default function Home() {
         restaurant_sgst: String(formData.restaurant_sgst),
         restaurant_discount: String(formData.restaurant_discount)
       };
+      console.log(formattedData);
+      
 
-      const response = await fetch(`${API_URL}/api/restaurant/create-restaurant`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(formattedData),
-      });
 
-      const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || data.message || 'Failed to create restaurant');
-      }
+      await axios.post(`${API_URL}/api/restaurant/create-restaurant`, formattedData);
 
-      alert('Restaurant created successfully!');
+      
+      toast.success('Your Restaurant has been created successfully!');
+      toast("Redirecting to your management portal");
+      setTimeout(() => {
+        window.location = process.env.NEXT_PUBLIC_BILLING_URL;
+      }, 2000);
       setActiveStep(0);
       setFormData({
         restaurant_uuid: '',
@@ -181,8 +179,8 @@ export default function Home() {
         isCashOnly: true
       });
     } catch (error) {
-      console.error('Error details:', error);
-      alert(`Error: ${error.message || 'An unknown error occurred'}`);
+      console.log('Error details:', error);
+      toast.error(`Error: ${error.message || 'An unknown error occurred'}`);
     }
   };
 
@@ -350,15 +348,7 @@ export default function Home() {
                 InputLabelProps={{ shrink: true }}
               />
             </div>
-            <TextField
-              fullWidth
-              label="Food Categories"
-              name="food_categories"
-              value={formData.food_categories}
-              onChange={handleChange}
-              helperText="Enter categories separated by commas"
-              variant="outlined"
-            />
+           
             <div className="flex space-x-4">
               <FormControlLabel
                 control={
@@ -388,6 +378,7 @@ export default function Home() {
 
   return (
     <ThemeProvider theme={theme}>
+      <Toaster />
       <div className="flex min-h-screen bg-gray-100">
         {/* Left Sidebar */}
         <div className="w-80 bg-white shadow-lg p-6 fixed h-full">
@@ -424,12 +415,12 @@ export default function Home() {
         {/* Main Content */}
         <div className="flex-1 ml-80 p-8">
           <Container maxWidth="md">
-            <Paper elevation={3} className="p-8 bg-white rounded-xl">
-              <Typography variant="h4" className="mb-8 font-bold text-gray-800 border-b pb-4">
+            <Paper elevation={3} className="p-4 px-6 bg-white rounded-xl">
+              <Typography variant="h4" className="mb-8 font-bold text-gray-800 border-b ">
                 {steps[activeStep].label}
               </Typography>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-1">
                 {renderStepContent(activeStep)}
 
                 <div className="flex justify-between pt-6 border-t mt-8">
